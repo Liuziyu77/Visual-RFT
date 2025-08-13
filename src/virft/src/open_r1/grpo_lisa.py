@@ -177,7 +177,7 @@ def main(script_args, training_args, model_args):
             ],
         }
 
-    QUESTION_TEMPLATE = "{Question} Output the thinking process in <think> </think> and your grouding box. Following \"<think> thinking process </think>\n<answer>(x1,y1),(x2,y2)</answer>)\" format."
+    QUESTION_TEMPLATE = "{Question} Output the thinking process in <think> </think> and your grounding box. Following \"<think> thinking process </think>\n<answer>(x1,y1),(x2,y2)</answer>)\" format."
 
     def make_conversation(example):
         conversations = example["conversations"]
