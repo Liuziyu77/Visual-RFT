@@ -10,7 +10,47 @@ You can download our model: 🤗<a href="https://huggingface.co/laolao77/Visual-
 You can download other four multihopQA benchmark from 🤗<a href="https://huggingface.co/datasets/RUC-NLPIR/FlashRAG_datasets">Dataset</a></h3>.
 
 ## Web Search API
-We use SerperAPI for web search. You can start by registering an account to receive 2,500 free queries, and then add your API key to the `.env` file.
+The Visual-ARFT evaluation agents use [Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp)
+for free web search in Fast mode when no search provider or Serper key is configured.
+No Parallel account or API key is needed. Install the search dependencies in your
+Qwen2.5-VL inference environment, from this directory:
+
+```bash
+python -m pip install -r requirements-search.txt
+```
+
+A real `SERPER_API` environment variable or `.env` key keeps Serper selected.
+The dummy `xxxxxxxxxxxxxxxxxxxxxxxxx` value shipped in `.env` is treated as unconfigured.
+To reproduce the paper's Serper-based evaluation, set that key and use Serper.
+Search providers can return different evidence, so changing providers can change
+benchmark results. The original Serper and DuckDuckGo helper functions remain
+available, including their Firecrawl `pro` mode.
+
+Set `VISUAL_ARFT_SEARCH_PROVIDER` in the environment or `.env` to explicitly choose
+`parallel`, `serper`, `ddg`, or `disabled`. Explicit choices take precedence over
+credential detection; provider errors never fall back to another service.
+`serper` requires `SERPER_API`. For `ddg`, additionally install `duckduckgo-search`;
+the optional `pro` helpers additionally require `firecrawl-py` and `FIRECRAWL_API`.
+`disabled` prevents search requests and marks questions that request a search as
+unanswered. A question that answers directly can still complete.
+
+Each evaluation question has its own opaque search session ID, reused across
+follow-up searches. Parallel results are adapted to the existing `title`/`href`/`body`
+format, with up to four results fed into the agent's next `<information>` block.
+Requests have a 30-second timeout; an error or free-service quota response leaves
+the affected question unanswered. Interrupting the evaluation cancels the active
+Parallel request. These settings apply to the five evaluation agent scripts here;
+the notebook demos and offline training keep their existing setup.
+
+The search integration can be checked without downloading model weights:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+These tests run the production evaluation loops with scripted model responses and
+an in-memory MCP HTTP transport. They check search dispatch and prompt consumption,
+not model quality or full GPU benchmark scores.
 
 ## Inference on MAT-Search
 

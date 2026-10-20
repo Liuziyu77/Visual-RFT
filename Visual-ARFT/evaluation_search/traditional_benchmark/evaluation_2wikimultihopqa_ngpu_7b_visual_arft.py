@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
-from tools.web_search import web_search_SERPER_API
+from tools.web_search import SearchSession
 
 # 定义颜色的ANSI代码
 RED = '\033[91m'
@@ -93,6 +93,7 @@ def run(rank, world_size):
     combine_results = []
     for i in tqdm(range(len(wikimultihopqa))):
         pred_answer = None
+        search_session = SearchSession()
         query = wikimultihopqa[i]['question']
         answer = wikimultihopqa[i]['golden_answers']
         item_id = wikimultihopqa[i]['id']
@@ -146,8 +147,8 @@ def run(rank, world_size):
                     match = re.search(r"<search>\s*(.*?)\s*</search>", result)
                     if match:
                         search_content = match.group(1).strip()
-                    # serper API web search: body
-                    search_results = web_search_SERPER_API(search_content, 4)
+                    # Web search excerpts feed the next reasoning turn.
+                    search_results = search_session.search(search_content, 4)
                     # print(search_results)
                     format_search_results = '<information> '
                     for index,item in enumerate(search_results):
